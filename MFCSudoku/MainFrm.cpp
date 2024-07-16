@@ -8,6 +8,13 @@
 
 #include "MainFrm.h"
 
+#define PLOG_CAPTURE_FILE
+#define TRACEVARS
+#include <plog/Log.h>
+#include <plog/Init.h>
+#include <plog/Formatters/CoutFormatter.h>
+#include <plog/Appenders/DebugOutputAppender.h>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -124,9 +131,10 @@ BOOL CMainFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*
 
 void CMainFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
+  PLOGD << "OnGetMinMaxInfo";
 	// TODO: Add your message handler code here and/or call default
-	lpMMI->ptMinTrackSize.x = 500;
-	lpMMI->ptMinTrackSize.y = 500;
+	lpMMI->ptMinTrackSize.x = 619; // These values need to be calculated with border size and toolbar size
+	lpMMI->ptMinTrackSize.y = 679;
 
 	CFrameWnd::OnGetMinMaxInfo(lpMMI);
 }
