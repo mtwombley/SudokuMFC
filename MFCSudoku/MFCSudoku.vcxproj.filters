@@ -39,6 +39,9 @@
     <ClInclude Include="SudokuGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UndoStack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MFCSudoku.cpp">
@@ -51,6 +54,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UndoStack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
