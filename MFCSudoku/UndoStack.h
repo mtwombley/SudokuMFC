@@ -29,7 +29,7 @@ struct Entry {
 // UndoStack class
 class UndoStack {
 private:
-  std::vector<Entry> stack;
+  std::vector<Entry> undoStack;
   std::vector<Entry> redoStack; // Stack for redo operations
 
 public:
@@ -47,12 +47,12 @@ public:
 
   // Mark the stack for an undo point
   void markStack() {
-    stack.emplace_back(-1, -1, EntryType::MarkStack, -1);
+    undoStack.emplace_back(-1, -1, EntryType::MarkStack, -1);
   }
 
   // For demonstration: Print the stack contents
   void printStack() {
-    for (const auto& entry : stack) {
+    for (const auto& entry : undoStack) {
       std::cout << "Type: " << static_cast<int>(entry.type) << ", Value: " << entry.value << std::endl;
     }
   }

@@ -44,7 +44,9 @@ TEST(UndoStackTests, UndoToMark) {
   stack.addEntry(entry1);
   Entry entry2(2, 2, EntryType::ValueEntry, 6);
   stack.addEntry(entry2);
+
   stack.markStack();
+
   Entry entry3(3, 3, EntryType::ValueEntry, 7);
   stack.addEntry(entry3);
 
@@ -55,4 +57,8 @@ TEST(UndoStackTests, UndoToMark) {
   EXPECT_EQ(entry1, result.value());
 
   stack.redo();
+  stack.redo();
+  stack.redo();
+  result = stack.undo();
+  EXPECT_EQ(entry3, result.value());
 }
