@@ -3,9 +3,9 @@
 
 TEST(UndoStackTests, Undo) {
   UndoStack stack;
-  Entry entry1(1, 1, EntryType::ValueEntry, 5);
+  UndoEntry entry1(1, 1, EntryType::ValueEntry, 5);
   stack.addEntry(entry1);
-  Entry entry2(2, 2, EntryType::ValueEntry, 6);
+  UndoEntry entry2(2, 2, EntryType::ValueEntry, 6);
   stack.addEntry(entry2);
 
   auto result = stack.undo();
@@ -17,9 +17,9 @@ TEST(UndoStackTests, Undo) {
 
 TEST(UndoStackTests, Redo) {
   UndoStack stack;
-  Entry entry1(1, 1, EntryType::ValueEntry, 5);
+  UndoEntry entry1(1, 1, EntryType::ValueEntry, 5);
   stack.addEntry(entry1);
-  Entry entry2(2, 2, EntryType::ValueEntry, 6);
+  UndoEntry entry2(2, 2, EntryType::ValueEntry, 6);
   stack.addEntry(entry2);
 
   auto result = stack.undo();
@@ -40,14 +40,14 @@ TEST(UndoStackTests, Redo) {
 
 TEST(UndoStackTests, UndoToMark) {
   UndoStack stack;
-  Entry entry1(1, 1, EntryType::ValueEntry, 5);
+  UndoEntry entry1(1, 1, EntryType::ValueEntry, 5);
   stack.addEntry(entry1);
-  Entry entry2(2, 2, EntryType::ValueEntry, 6);
+  UndoEntry entry2(2, 2, EntryType::ValueEntry, 6);
   stack.addEntry(entry2);
 
   stack.markStack();
 
-  Entry entry3(3, 3, EntryType::ValueEntry, 7);
+  UndoEntry entry3(3, 3, EntryType::ValueEntry, 7);
   stack.addEntry(entry3);
 
   auto result = stack.undoToMark();

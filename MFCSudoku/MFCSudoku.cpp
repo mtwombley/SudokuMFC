@@ -14,7 +14,6 @@
 #define new DEBUG_NEW
 #endif
 
-
 // CMFCSudokuApp
 
 BEGIN_MESSAGE_MAP(CMFCSudokuApp, CWinApp)
@@ -26,7 +25,7 @@ END_MESSAGE_MAP()
 
 CMFCSudokuApp::CMFCSudokuApp() noexcept
 {
-
+  plog::init( plog::debug, &debugOutputAppender );
 	// support Restart Manager
 	m_dwRestartManagerSupportFlags = AFX_RESTART_MANAGER_SUPPORT_ALL_ASPECTS;
 #ifdef _MANAGED

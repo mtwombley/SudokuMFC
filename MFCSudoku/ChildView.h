@@ -35,5 +35,6 @@ protected:
 public:
     afx_msg void OnChangeUIState(UINT nAction, UINT nUIElement);
     afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
+    afx_msg void OnFileNewrandom();
 };
 

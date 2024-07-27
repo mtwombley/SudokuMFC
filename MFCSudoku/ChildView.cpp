@@ -7,25 +7,30 @@
 #include "MFCSudoku.h"
 #include "ChildView.h"
 #include "SudokuGrid.h"
+#include "ExactCover.h"
 
-#define PLOG_CAPTURE_FILE
-#define TRACEVARS
-#include <plog/Log.h>
-#include <plog/Init.h>
-#include <plog/Formatters/CoutFormatter.h>
-#include <plog/Appenders/DebugOutputAppender.h>
+// A local instance of the SudokuGrid class
+//   Why is this not a member of the CChildView class?
+//     Making it a member means the SudokuGrid class would need to be in the header file which increases the scope of the SudokuGrid class
+//     Doing it this way keeps the SudokuGrid class private to the CChildView class because only it needs to know about it.
 
+namespace {
+  PLOGInitializer plogInitializer;
+
+  SudokuGrid grid;
+//  ExactCover ec;
+
+}
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
-static plog::DebugOutputAppender<plog::COutFormatter>  debugOutputAppender;
-
 // CChildView
 
 CChildView::CChildView()
 {
+  PLOGD << "CChildView";
 }
 
 CChildView::~CChildView()
@@ -36,6 +41,7 @@ CChildView::~CChildView()
 BEGIN_MESSAGE_MAP(CChildView, CWnd)
   ON_WM_PAINT()
   ON_WM_CHANGEUISTATE()
+  ON_COMMAND( ID_FILE_NEWRANDOM, &CChildView::OnFileNewrandom )
 END_MESSAGE_MAP()
 
 
@@ -44,8 +50,8 @@ END_MESSAGE_MAP()
 
 BOOL CChildView::PreCreateWindow(CREATESTRUCT& cs)
 {
-  plog::init(plog::debug, &debugOutputAppender);
-  LOGD << "PreCreateWindow";
+
+  PLOGD << "PreCreateWindow";
 
   if (!CWnd::PreCreateWindow(cs))
     return FALSE;
@@ -160,4 +166,10 @@ void CChildView::OnChangeUIState(UINT nAction, UINT nUIElement)
   CWnd::OnChangeUIState(nAction, nUIElement);
 
   // TODO: Add your message handler code here
+}
+
+
+void CChildView::OnFileNewrandom()
+{
+  grid.GenerateRandomGrid();
 }

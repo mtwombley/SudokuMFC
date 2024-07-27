@@ -10,4 +10,20 @@
 // add headers that you want to pre-compile here
 #include "framework.h"
 
+#define PLOG_CAPTURE_FILE
+#define TRACEVARS
+#include <plog/Log.h>
+#include <plog/Init.h>
+#include <plog/Formatters/CoutFormatter.h>
+#include <plog/Appenders/DebugOutputAppender.h>
+
+extern plog::DebugOutputAppender<plog::COutFormatter>  debugOutputAppender;
+
+struct PLOGInitializer
+{
+  PLOGInitializer()
+  {
+    plog::init( plog::debug, &debugOutputAppender );
+  }
+};
 #endif //PCH_H

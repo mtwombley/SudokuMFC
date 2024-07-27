@@ -7,16 +7,16 @@ void UndoStack::addEntry(int _row, int _col, EntryType _type, int _value)
   redoStack.clear(); // Clear redoStack whenever a new entry is added
 }
 
-void UndoStack::addEntry(Entry& _entry)
+void UndoStack::addEntry(UndoEntry& _entry)
 {
   undoStack.emplace_back(_entry);
   redoStack.clear(); // Clear redoStack whenever a new entry is added
 }
 
-std::optional<Entry> UndoStack::undo()
+std::optional<UndoEntry> UndoStack::undo()
 {
   if (!undoStack.empty()) {
-    Entry entry = undoStack.back();
+    UndoEntry entry = undoStack.back();
     redoStack.emplace_back(entry);
     undoStack.pop_back();
     return entry;
@@ -24,7 +24,7 @@ std::optional<Entry> UndoStack::undo()
   return {}; // Return a default entry if stack is empty
 }
 
-std::optional<Entry> UndoStack::undoToMark()
+std::optional<UndoEntry> UndoStack::undoToMark()
 {
   while (!undoStack.empty() && undoStack.back().type != EntryType::MarkStack) {
     redoStack.emplace_back(undoStack.back());
@@ -38,16 +38,16 @@ std::optional<Entry> UndoStack::undoToMark()
   redoStack.emplace_back(undoStack.back());
   undoStack.pop_back();
 
-  Entry entry = undoStack.back();
+  UndoEntry entry = undoStack.back();
   redoStack.emplace_back(entry);
   undoStack.pop_back(); // Remove the mark stack entry
   return entry;
 }
 
-std::optional<Entry> UndoStack::redo()
+std::optional<UndoEntry> UndoStack::redo()
 {
   if (!redoStack.empty()) {
-    Entry redoneEntry = redoStack.back();
+    UndoEntry redoneEntry = redoStack.back();
     undoStack.push_back(redoneEntry); // Move the entry back to the main stack
     redoStack.pop_back();
     // if the redone entry is a mark stack entry, we need to get the next entry
