@@ -10,11 +10,14 @@ struct Node
   Node* down  = nullptr;
   Node* head  = nullptr;
 
+  wchar_t strValue[20];
+
   int size = -1;  //used for Column header
-  //int rowID[3];   //used to identify row in order to map solutions to a sudoku grid
   unsigned int candidate;
   unsigned int rowCounter;
   unsigned int columnCounter;
+  int columnIndex;
+  int rowIndex;
 
   // Find the column with the fewest nodes
   Node* ChooseColumn()
@@ -37,9 +40,8 @@ struct Node
   {
     left->right = right;
     right->left = left;
-    for (Node* i = down; i != this; i = i->down)
-    {
-      for (Node* j = i->right; j != i; j = j->right)
+    for ( Node* i = down; i != this; i = i->down ) {
+      for ( Node* j = i->right; j != i; j = j->right )
       {
         j->down->up = j->up;
         j->up->down = j->down;

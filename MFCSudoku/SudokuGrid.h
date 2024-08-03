@@ -1,42 +1,12 @@
 #pragma once
 #include <sstream>
 #include <vector>
+#include <iterator>
 #include "ExactCover.h"
 
-class SudokuGrid
+struct SudokuGrid
 {
-    #pragma region Dancing Links
-
-  #define MAX_K 1000
-
-  // Linked list structure for the Dancing Links algorithm
-  struct Node
-  {
-    Node* left;
-    Node* right;
-    Node* up;
-    Node* down;
-    Node* head;
-
-    int size;     //used for Column header
-    int rowID[3]; //used to identify row in order to map solutions to a sudoku grid
-    //ID Format: (Candidate, Row, Column)
-  };
-
-  static const int GSIZE = 9;
-  static const int SIZE_SQUARED = 81;
-  static const int SIZE_SQRT = 3;
-  static const int ROW_NB = GSIZE * GSIZE * GSIZE;
-  static const int COL_NB = 4 * GSIZE * GSIZE;
-
-  Node Head;
-  Node* HeadNode = &Head;
-  std::vector<Node*> solution;
-  Node* orig_values[MAX_K];
-  bool isSolved = false;
-
-  #pragma endregion
-  struct BlockValues
+  struct BlockValue
   {
     // Assuming a 32 bit unsigned int
     unsigned int _pencilMark : 9;       // 9 bits for pencil marks 1-9
@@ -48,10 +18,40 @@ class SudokuGrid
     //CRect _rect;
   };
 
-  BlockValues cells[9][9] = {0};
+  struct CardShuffle
+  {
+    CardShuffle( SudokuGrid::BlockValue* head )
+    {
+      deck.reserve( 81 );
+      for ( int i = 0; i < 9; ++i )
+      {
+        for ( int j = 0; j < 9; ++j )
+        {
+          // Temporarily store the row, column, and value in the deck
+          head->_value = i;
+          head->_reserved = j;
+          deck.push_back( head++ );
+        }
+      }
+    }
+     // create a vector of 81 pointers pointing to a BlockValues object
+    std::vector<SudokuGrid::BlockValue*> deck;
+
+    void Shuffle();
+
+    void DebugPrint()
+    {
+      for ( auto& card : deck )
+      {
+        PLOGD << "r" << card->_value << "c" << card->_reserved;
+      }
+    }
+  };
+
+  BlockValue cells[9][9] = {0};
 
   ExactCover ec;
-public:
+
   #pragma region Constructors
   SudokuGrid()
   {
@@ -140,7 +140,7 @@ public:
       for ( int column = 0; column < 9; ++column )
       {
         cells[row][column]._value = 0;
-        cells[row][column]._pencilMark = 0;
+        cells[row][column]._pencilMark = 0x1FF;
         cells[row][column]._snyderNotation = 0;
       }
     }
@@ -148,7 +148,7 @@ public:
 
   void GenerateRandomGrid();
 
-  bool Solve();
+  void Solve();
 
   const std::ostringstream AsString();
 
@@ -165,17 +165,18 @@ public:
     return static_cast<int>(cells[row][column]._pencilMark >> pencilMark);
   }
 
-//   // Get the rectangle for a cell
-//   CRect& getRect(int row, int column)
-//   {
-//     return cells[row][column]._rect;
-//   }
-
   // Set the value of a cell
   void setValue( int row, int column, int value )
   {
     cells[row][column]._value = (unsigned int)value;
-    cells[row][column]._pencilMark &= ( ~( 1 << value ) );
+    cells[row][column]._pencilMark &= ( ~( 1 << (value-1) ) );
+  }
+
+  // Set the value of a cell
+  void setSolution( int row, int column, int value )
+  {
+    cells[row][column]._solution = (unsigned int)value;
+    cells[row][column]._pencilMark &= ( ~( 1 << (value-1) ) );
   }
 
   // Set the pencil mark value of a cell
@@ -183,35 +184,72 @@ public:
   {
     cells[row][column]._pencilMark = 1u << value;
   }
+
+  bool CheckValue( unsigned int row, unsigned int column, unsigned int value )
+  {
+    if ( cells[row][column]._value != 0 )
+      return false;
+
+    // Check the row and column against the value
+    for ( int i = 0; i < 9; ++i )
+    {
+      if ( cells[row][i]._value == value ||
+           cells[i][column]._value == value )
+        return false;
+    }
+
+    // Check the block against the value
+    int blockRow = row / 3;
+    int blockColumn = column / 3;
+    for ( int i = blockRow * 3; i < blockRow * 3 + 3; ++i )
+    {
+      for ( int j = blockColumn * 3; j < blockColumn * 3 + 3; ++j )
+      {
+        if ( cells[i][j]._value == value )
+          return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool CheckSolution( unsigned int row, unsigned int column, unsigned int value )
+  {
+    if ( cells[row][column]._solution != 0 )
+    {
+      PLOGD << "Solution already set r" << row << "c" << column << "#" << value;
+      return false;
+    }
+
+    // Check the row and column against the value
+    for ( int i = 0; i < 9; ++i )
+    {
+      if ( cells[row][i]._solution == value ||
+           cells[i][column]._solution == value )
+      {
+        PLOGD << "Row or Column already set r" << row << "c" << column << "#" << value;
+         return false;
+      }
+    }
+
+    // Check the block against the value
+    int blockRow = row / 3;
+    int blockColumn = column / 3;
+    for ( int i = blockRow * 3; i < blockRow * 3 + 3; ++i )
+    {
+      for ( int j = blockColumn * 3; j < blockColumn * 3 + 3; ++j )
+      {
+        if ( cells[i][j]._solution == value )
+        {
+          PLOGD << "Block already set r" << row << "c" << column << "#" << value;
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
   #pragma endregion
 
-private:
-  #pragma region DancingLinks Functions
-//===============================================================================================================//
-//---------------------------------------------DLX Functions-----------------------------------------------------//
-//===============================================================================================================//
-
-//   void coverColumn( Node* col );
-//
-//   void uncoverColumn( Node* col );
-//
-//   void Search( int k );
-
-//===============================================================================================================//
-//----------------------Functions to turn a Sudoku grid into an Exact Cover problem -----------------------------//
-//===============================================================================================================//
-
-//--------------------------BUILD THE INITIAL MATRIX CONTAINING ALL POSSIBILITIES--------------------------------//
-//   void BuildSparseMatrix();
-//
-//   //-------------------BUILD A TOROIDAL DOUBLY LINKED LIST OUT OF THE SPARSE MATRIX-------------------------//
-//   void BuildLinkedList();
-//
-//   //-------------------COVERS VALUES THAT ARE ALREADY PRESENT IN THE GRID-------------------------//
-//   void TransformListToCurrentGrid();
-//
-//   void MapSolutionToGrid();
-
-  #pragma endregion
 };
 

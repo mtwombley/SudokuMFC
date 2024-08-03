@@ -85,7 +85,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -109,11 +109,14 @@
     <ClInclude Include="ExactCover.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="MathHelper.h" />
     <ClInclude Include="MFCSudoku.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="RandomGen.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SudokuGrid.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TemplateTypeAsserts.h" />
     <ClInclude Include="UndoStack.h" />
   </ItemGroup>
   <ItemGroup>
@@ -136,6 +139,9 @@
   <ItemGroup>
     <Image Include="res\MFCSudoku.ico" />
     <Image Include="res\Toolbar.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="NatvisFile.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
