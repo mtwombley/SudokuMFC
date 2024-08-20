@@ -243,11 +243,25 @@ struct ExactCover
     c->Uncover();
   }
 
-  void DebugOutPuzzleSolution()
+  void CheckHeaders()
+  {
+    if ( head == nullptr )
+    {
+      return;
+    }
+    int headerCount = 0;
+    for ( auto i = head->right; i != head; i = i->right, ++headerCount )
+    {
+        //PLOGD << "Column " << i->columnIndex << " Size: " << i->size;
+    }
+    PLOGD << "Header Count: " << headerCount;
+  }
+
+  void DebugOutPuzzleSolutionOrdered( std::vector<Node*>& testSolution )
   {
     std::ostringstream ss;
     std::ostringstream ss1;
-    std::vector<Node*> backupSolution = this->workingSolution;
+    std::vector<Node*> backupSolution = testSolution;
     std::sort( backupSolution.begin(), backupSolution.end(), [] ( Node* a, Node* b )
     {
       if ( a->rowCounter == b->rowCounter )
@@ -263,6 +277,45 @@ struct ExactCover
     }
     PLOGD << ss.str();
     PLOGD << ss1.str();
+  }
+
+  void DebugOutPuzzleSolution( std::vector<Node*> &testSolution )
+  {
+    std::ostringstream ss;
+    std::ostringstream ss1;
+    for ( auto node : testSolution )
+    {
+      ss << node->candidate;
+      ss1 << "r" << node->rowCounter << "c" << node->columnCounter << "#" << node->candidate << " ";
+    }
+    PLOGD << ss.str();
+    PLOGD << ss1.str();
+  }
+
+  void DebugOutPuzzleForTest( std::vector<Node*>& testSolution, size_t upto = 81 )
+  {
+    std::ostringstream ss;
+    std::ostringstream ss1;
+    int counter = 0;
+    char puzzle[9][9] = {0};
+    for ( auto node : testSolution )
+    {
+      puzzle[node->rowCounter - 1][node->columnCounter - 1] = static_cast<char>(node->candidate) + '0';
+      if ( ++counter == upto )
+        break;
+    }
+    for ( int i = 0; i < 9; ++i )
+    {
+      for ( int j = 0; j < 9; ++j )
+      {
+        if (puzzle[i][j] == 0)
+          ss << ".";
+        else
+          ss << puzzle[i][j];
+      }
+      ss << std::endl;
+    }
+    PLOGD << ss.str();
   }
 
   // Print the solution to debug output using plog

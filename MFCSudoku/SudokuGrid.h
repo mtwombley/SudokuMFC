@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 #include <iterator>
+#include <__msvc_bit_utils.hpp>
 #include "ExactCover.h"
 
 struct SudokuGrid
@@ -15,6 +16,10 @@ struct SudokuGrid
     unsigned int _solution : 4;         // 4 bits for the solution 1-9
     unsigned int _reserved : 6;         // 6 bits reserved for future use
 
+    int CountPencilMarks() const
+    {
+      return std::_Popcount( _pencilMark );
+    }
     //CRect _rect;
   };
 
@@ -159,10 +164,15 @@ struct SudokuGrid
     return static_cast<int>(cells[row][column]._value);
   }
 
-  // Get the pencil mark value of a cell
-  int getPencilMarkValue( int row, int column, int pencilMark )
+  int getSolution( int row, int column )
   {
-    return static_cast<int>(cells[row][column]._pencilMark >> pencilMark);
+    return static_cast<int>(cells[row][column]._solution);
+  }
+
+  // Get the pencil mark value of a cell
+  int getPencilMarkValue( int row/*0-8*/, int column/*0-8*/, int pencilMark/*0-8*/ )
+  {
+    return static_cast<int>(cells[row][column]._pencilMark & 1 << (pencilMark-1));
   }
 
   // Set the value of a cell
@@ -177,6 +187,25 @@ struct SudokuGrid
   {
     cells[row][column]._solution = (unsigned int)value;
     cells[row][column]._pencilMark &= ( ~( 1 << (value-1) ) );
+
+    // remove the value from the pencilMarks in the home cells
+    int blockRow = row / 3;
+    int blockColumn = column / 3;
+    for ( int i = blockRow * 3; i < blockRow * 3 + 3; ++i )
+    {
+      for ( int j = blockColumn * 3; j < blockColumn * 3 + 3; ++j )
+      {
+        cells[i][j]._pencilMark &= ( ~( 1 << (value-1) ) );
+      }
+    }
+    // remove the value from the pencilMarks in the row cells
+    // remove the value from the pencilMarks in the column cells
+    for ( int i = 0; i < 9; ++i )
+      for ( int j = 0; j < 9; ++j )
+      {
+        if ( i == row || j == column )
+          cells[i][j]._pencilMark &= ( ~( 1 << (value-1) ) );
+      }
   }
 
   // Set the pencil mark value of a cell
@@ -221,33 +250,35 @@ struct SudokuGrid
       return false;
     }
 
-    // Check the row and column against the value
-    for ( int i = 0; i < 9; ++i )
-    {
-      if ( cells[row][i]._solution == value ||
-           cells[i][column]._solution == value )
-      {
-        PLOGD << "Row or Column already set r" << row << "c" << column << "#" << value;
-         return false;
-      }
-    }
+    return getPencilMarkValue( row, column, value - 1 );
 
-    // Check the block against the value
-    int blockRow = row / 3;
-    int blockColumn = column / 3;
-    for ( int i = blockRow * 3; i < blockRow * 3 + 3; ++i )
-    {
-      for ( int j = blockColumn * 3; j < blockColumn * 3 + 3; ++j )
-      {
-        if ( cells[i][j]._solution == value )
-        {
-          PLOGD << "Block already set r" << row << "c" << column << "#" << value;
-          return false;
-        }
-      }
-    }
+//     // Check the row and column against the value
+//     for ( int i = 0; i < 9; ++i )
+//     {
+//       if ( cells[row][i]._solution == value ||
+//            cells[i][column]._solution == value )
+//       {
+//         PLOGD << "Row or Column already set r" << row << "c" << column << "#" << value;
+//          return false;
+//       }
+//     }
+//
+//     // Check the block against the value
+//     int blockRow = row / 3;
+//     int blockColumn = column / 3;
+//     for ( int i = blockRow * 3; i < blockRow * 3 + 3; ++i )
+//     {
+//       for ( int j = blockColumn * 3; j < blockColumn * 3 + 3; ++j )
+//       {
+//         if ( cells[i][j]._solution == value )
+//         {
+//           PLOGD << "Block already set r" << row << "c" << column << "#" << value;
+//           return false;
+//         }
+//       }
+//     }
 
-    return true;
+//     return true;
   }
   #pragma endregion
 

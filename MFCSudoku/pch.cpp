@@ -3,4 +3,4 @@
 #include "pch.h"
 
 // When you are using pre-compiled headers, this source file is necessary for compilation to succeed.
-plog::DebugOutputAppender<plog::COutFormatter>  debugOutputAppender;
+plog::DebugOutputAppender<plog::MessageOnlyFormatter>  debugOutputAppender;

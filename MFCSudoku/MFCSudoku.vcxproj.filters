@@ -57,6 +57,12 @@
     <ClInclude Include="TemplateTypeAsserts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CGridCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuadtreeNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MFCSudoku.cpp">
@@ -77,6 +83,15 @@
     <ClCompile Include="SudokuGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SudokuGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CGridCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuadtreeNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MFCSudoku.rc">
@@ -87,6 +102,8 @@
     <None Include="res\MFCSudoku.rc2">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\CodeMap1.dgml" />
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\MFCSudoku.ico">
