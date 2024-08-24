@@ -9,17 +9,25 @@ struct SudokuGrid
 {
   struct BlockValue
   {
-    // Assuming a 32 bit unsigned int
-    unsigned int _pencilMark : 9;       // 9 bits for pencil marks 1-9
-    unsigned int _snyderNotation : 9;   // 9 bits for snyder notation 1-9
-    unsigned int _value : 4;            // 4 bits for the value 1-9
-    unsigned int _solution : 4;         // 4 bits for the solution 1-9
-    unsigned int _reserved : 6;         // 6 bits reserved for future use
+    using uint32_t = unsigned __int32;
 
-    int CountPencilMarks() const
+    // Assuming a 32 bit unsigned int
+    uint32_t _pencilMark : 9;       // 9 bits for pencil marks 1-9
+    uint32_t _snyderNotation : 9;   // 9 bits for snyder notation 1-9
+    uint32_t _value : 4;            // 4 bits for the value 1-9
+    uint32_t _solution : 4;         // 4 bits for the solution 1-9
+    uint32_t _reserved : 6;         // 6 bits reserved for future use
+
+    uint32_t CountPencilMarks() const
     {
       return std::_Popcount( _pencilMark );
     }
+
+    uint32_t CountSnyderNotation() const
+    {
+      return std::_Popcount( _snyderNotation );
+    }
+
     //CRect _rect;
   };
 
@@ -44,6 +52,7 @@ struct SudokuGrid
 
     void Shuffle();
 
+#pragma region Debug Features
     void DebugPrint()
     {
       for ( auto& card : deck )
@@ -51,6 +60,7 @@ struct SudokuGrid
         PLOGD << "r" << card->_value << "c" << card->_reserved;
       }
     }
+#pragma endregion Debug Features
   };
 
   BlockValue cells[9][9] = {0};
@@ -138,18 +148,7 @@ struct SudokuGrid
   #pragma endregion
 
     // Clear the grid
-  void clear()
-  {
-    for ( int row = 0; row < 9; ++row )
-    {
-      for ( int column = 0; column < 9; ++column )
-      {
-        cells[row][column]._value = 0;
-        cells[row][column]._pencilMark = 0x1FF;
-        cells[row][column]._snyderNotation = 0;
-      }
-    }
-  }
+  void clear();
 
   void GenerateRandomGrid();
 
@@ -159,18 +158,18 @@ struct SudokuGrid
 
   #pragma region Getters and Setters
     // Get the value of a cell
-  int getValue( int row, int column )
+  int getValue( int row, int column ) const
   {
     return static_cast<int>(cells[row][column]._value);
   }
 
-  int getSolution( int row, int column )
+  int getSolution( int row, int column ) const
   {
     return static_cast<int>(cells[row][column]._solution);
   }
 
   // Get the pencil mark value of a cell
-  int getPencilMarkValue( int row/*0-8*/, int column/*0-8*/, int pencilMark/*0-8*/ )
+  int getPencilMarkValue( int row/*0-8*/, int column/*0-8*/, int pencilMark/*0-8*/ ) const
   {
     return static_cast<int>(cells[row][column]._pencilMark & 1 << (pencilMark-1));
   }

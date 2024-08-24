@@ -1,7 +1,8 @@
 #pragma once
 #include <vector>
+#include <sstream>
 
-
+// Extend the CRect class to include row, column, and value
 struct CRectInfo : public CRect
 {
   CRectInfo( const CRect& _rect, int _row, int _col, int _val ) : CRect( _rect ), row(_row), col(_col), value(_val) {}
@@ -9,6 +10,16 @@ struct CRectInfo : public CRect
   int row = 0;
   int col = 0;
   int value = 0;
+
+#pragma region Debug Features
+  // Add a stream operator to make it easier to log the object
+  friend plog::util::nostringstream& operator << ( plog::util::nostringstream& os, const CRectInfo& rect )
+  {
+    os << "CRectInfo: " << "Rect: " << rect.left << ", " << rect.top << ", " << rect.right << ", " << rect.bottom << " Row: " << rect.row << " Col: " << rect.col << " Value: " << rect.value;
+    return os;
+  }
+#pragma endregion Debug Features
+
 };
 
 class QuadtreeNode {

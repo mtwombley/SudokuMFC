@@ -7,6 +7,19 @@
 
 extern CString GeneratePuzzle();
 
+void SudokuGrid::clear()
+{
+  for ( int row = 0; row < 9; ++row )
+  {
+    for ( int column = 0; column < 9; ++column )
+    {
+      cells[row][column]._value = 0;
+      cells[row][column]._pencilMark = 0x1FF;
+      cells[row][column]._snyderNotation = 0;
+    }
+  }
+}
+
 void SudokuGrid::GenerateRandomGrid()
 {
   ec.Initialize();

@@ -29,7 +29,7 @@ namespace
 
 CChildView::CChildView()
 {
-  PLOGD << "CChildView";
+  //PLOGD << "CChildView";
 }
 
 CChildView::~CChildView()
@@ -49,7 +49,7 @@ END_MESSAGE_MAP()
 BOOL CChildView::PreCreateWindow( CREATESTRUCT& cs )
 {
 
-  PLOGD << "PreCreateWindow";
+  //PLOGD << "PreCreateWindow";
 
   if ( !CWnd::PreCreateWindow( cs ) )
     return FALSE;

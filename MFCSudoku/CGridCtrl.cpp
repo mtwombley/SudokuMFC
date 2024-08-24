@@ -18,6 +18,23 @@ CGridCtrl::CGridCtrl()
 
 CGridCtrl::~CGridCtrl()
 {
+  if (homeCellPen.GetSafeHandle() != nullptr)
+  {
+    homeCellPen.DeleteObject();
+  }
+  if (blockPen.GetSafeHandle() != nullptr)
+  {
+    blockPen.DeleteObject();
+  }
+  if (paddingPen.GetSafeHandle() != nullptr)
+  {
+    paddingPen.DeleteObject();
+  }
+  if (cellPen.GetSafeHandle() != nullptr)
+  {
+    cellPen.DeleteObject();
+  }
+
   if ( fontSml.GetSafeHandle() != nullptr )
   {
     fontSml.DeleteObject();
@@ -36,6 +53,28 @@ CGridCtrl::~CGridCtrl()
   }
 }
 
+enum
+{
+  ThickLine1,  // 0
+  ValueCell1,  // 1
+  ThinLine1,   // 2
+  ValueCell2,  // 3
+  ThinLine2,   // 4
+  ValueCell3,  // 5
+  ThickLine2,  // 6
+  ValueCell4,  // 7
+  ThinLine3,   // 8
+  ValueCell5,  // 9
+  ThinLine4,   // 10
+  ValueCell6,  // 11
+  ThickLine3,  // 12
+  ValueCell7,  // 13
+  ThinLine5,   // 14
+  ValueCell8,  // 15
+  ThinLine6,   // 16
+  ValueCell9,  // 17
+  ThickLine4,  // 18
+};
 
 // CGridCtrl message handlers
 BEGIN_MESSAGE_MAP(CGridCtrl, CWnd)
@@ -102,45 +141,49 @@ void CGridCtrl::OnMouseMove( UINT nFlags, CPoint point )
     if (!m_mouseInGrid )
     {
       auto err = GetLastError();
-      PLOGD << "TrackMouseEvent failed";
+      PLOGD << "TrackMouseEvent failed with error: " << err;
     }
   }
-
+  m_queryPoint = CPoint( -1,-1 ); //Invalidate the last query point
   switch ( nFlags )
   {
   case MK_LBUTTON:
-    PLOGD << "Left button pressed";
+    //PLOGD << "Left button pressed";
     break;
   case MK_RBUTTON:
-    PLOGD << "Right button pressed";
+    //PLOGD << "Right button pressed";
     break;
   case MK_MBUTTON:
-    PLOGD << "Middle button pressed";
+    //PLOGD << "Middle button pressed";
     break;
   case MK_CONTROL:
-    PLOGD << "Control button pressed";
+    //PLOGD << "Control button pressed";
     break;
   case MK_SHIFT:
-    PLOGD << "Shift button pressed";
+    //PLOGD << "Shift button pressed";
     break;
   case MK_XBUTTON1:
-    PLOGD << "X1 button pressed";
+    //PLOGD << "X1 button pressed";
     break;
   case MK_XBUTTON2:
-    PLOGD << "X2 button pressed";
+    //PLOGD << "X2 button pressed";
     break;
   case 0:
   {
     // if we are in pencil mode, draw a rect around the pencil mark cell
     // find the cell that we are in
     auto foundRects = m_quadtree.query( point );
+    if ( foundRects.size() == 0 )
+    {
+      PLOGD << "No cell found";
+    }
     for ( auto rect : foundRects )
     {
       if (m_highlightedCell != *rect/* && m_unHighlightCell != *rect */)
       {
-        // unhighlight the cell
         m_unHighlightCell = m_highlightedCell;
-        m_highlightedCell = *rect;
+        m_highlightedCell.CopyRect(*rect);
+        m_queryPoint = point;
         InvalidateRect( m_unHighlightCell );
         InvalidateRect( m_highlightedCell );
       }
@@ -151,8 +194,6 @@ void CGridCtrl::OnMouseMove( UINT nFlags, CPoint point )
     PLOGD << "Unknown button pressed";
     break;
   }
-
-  PLOGD << VARSTRACE( point.x, point.y );
 
   CWnd::OnMouseMove( nFlags, point );
 }
@@ -202,6 +243,7 @@ void CGridCtrl::OnPaint()
 
   if ( !m_highlightedCell.IsRectEmpty() )
   {
+    PLOGD << "m_highlightCell: " << m_highlightedCell.left << "," << m_highlightedCell.top << "," << m_highlightedCell.right << "," << m_highlightedCell.bottom;
     dc.DrawFocusRect( m_highlightedCell );
   }
 
@@ -210,34 +252,35 @@ void CGridCtrl::OnPaint()
 
 void CGridCtrl::PreComputeCoordinates()
 {
-  gridCoordinates[0] += m_labelTextAreaSize;                          // Draw thick line
-  gridCoordinates[1] += m_thickBoarderPenSize + gridCoordinates[0];   // draw value cell
-  gridCoordinates[2] += m_valueCellSize + gridCoordinates[1];         // draw thin line
-  gridCoordinates[3] += m_thinBoarderPenSize + gridCoordinates[2];    // draw value cell
-  gridCoordinates[4] += m_valueCellSize + gridCoordinates[3];         // draw thin line
-  gridCoordinates[5] += m_thinBoarderPenSize + gridCoordinates[4];    // draw value cell
-  gridCoordinates[6] += m_valueCellSize + gridCoordinates[5];         // draw thick line
-  gridCoordinates[7] += m_thickBoarderPenSize + gridCoordinates[6];   // draw value cell
-  gridCoordinates[8] += m_valueCellSize + gridCoordinates[7];         // draw thin line
-  gridCoordinates[9] += m_thinBoarderPenSize + gridCoordinates[8];    // draw value cell
-  gridCoordinates[10] += m_valueCellSize + gridCoordinates[9];         // draw thin line
-  gridCoordinates[11] += m_thinBoarderPenSize + gridCoordinates[10];   // draw value cell
-  gridCoordinates[12] += m_valueCellSize + gridCoordinates[11];        // draw thick line
-  gridCoordinates[13] += m_thickBoarderPenSize + gridCoordinates[12];  // draw value cell
-  gridCoordinates[14] += m_valueCellSize + gridCoordinates[13];        // draw thin line
-  gridCoordinates[15] += m_thinBoarderPenSize + gridCoordinates[14];   // draw value cell
-  gridCoordinates[16] += m_valueCellSize + gridCoordinates[15];        // draw thin line
-  gridCoordinates[17] += m_thinBoarderPenSize + gridCoordinates[16];   // draw value cell
-  gridCoordinates[18] += m_valueCellSize + gridCoordinates[17];        // draw thick line
 
-  gridBounds = {gridCoordinates[0], gridCoordinates[0], gridCoordinates[18], gridCoordinates[18]};
+  gridCoordinates[ThickLine1] += m_labelTextAreaSize;                          // Draw thick line
+  gridCoordinates[ValueCell1] += gridCoordinates[ThickLine1] + m_thickBoarderPenSize;   // draw value cell
+  gridCoordinates[ThinLine1]  += gridCoordinates[ValueCell1] + m_valueCellSize;         // draw thin line
+  gridCoordinates[ValueCell2] += gridCoordinates[ThinLine1]  + m_thinBoarderPenSize;    // draw value cell
+  gridCoordinates[ThinLine2]  += gridCoordinates[ValueCell2] + m_valueCellSize;         // draw thin line
+  gridCoordinates[ValueCell3] += gridCoordinates[ThinLine2]  + m_thinBoarderPenSize;    // draw value cell
+  gridCoordinates[ThickLine2] += gridCoordinates[ValueCell3] + m_valueCellSize;         // draw thick line
+  gridCoordinates[ValueCell4] += gridCoordinates[ThickLine2] + m_thickBoarderPenSize;   // draw value cell
+  gridCoordinates[ThinLine3]  += gridCoordinates[ValueCell4] + m_valueCellSize;         // draw thin line
+  gridCoordinates[ValueCell5] += gridCoordinates[ThinLine3]  + m_thinBoarderPenSize;    // draw value cell
+  gridCoordinates[ThinLine4]  += gridCoordinates[ValueCell5] + m_valueCellSize;         // draw thin line
+  gridCoordinates[ValueCell6] += gridCoordinates[ThinLine4]  + m_thinBoarderPenSize;    // draw value cell
+  gridCoordinates[ThickLine3] += gridCoordinates[ValueCell6] + m_valueCellSize;         // draw thick line
+  gridCoordinates[ValueCell7] += gridCoordinates[ThickLine3] + m_thickBoarderPenSize;   // draw value cell
+  gridCoordinates[ThinLine5]  += gridCoordinates[ValueCell7] + m_valueCellSize;         // draw thin line
+  gridCoordinates[ValueCell8] += gridCoordinates[ThinLine5]  + m_thinBoarderPenSize;    // draw value cell
+  gridCoordinates[ThinLine6]  += gridCoordinates[ValueCell8] + m_valueCellSize;         // draw thin line
+  gridCoordinates[ValueCell9] += gridCoordinates[ThinLine6]  + m_thinBoarderPenSize;    // draw value cell
+  gridCoordinates[ThickLine4] += gridCoordinates[ValueCell9] + m_valueCellSize;         // draw thick line
+
+  gridBounds = {gridCoordinates[ThickLine1], gridCoordinates[ThickLine1], gridCoordinates[ThickLine4], gridCoordinates[ThickLine4]};
   m_quadtree = Quadtree( gridBounds, 6, 4 );
 
   //PLOGD << "row,col,i,j,l,t,r,b,w,h";
-  for ( int cellCoordIndexRow = 1, row = 0; cellCoordIndexRow <= 17; cellCoordIndexRow += 2, ++row )
+  for ( int cellCoordIndexRow = ValueCell1, row = 0; cellCoordIndexRow <= ValueCell9; cellCoordIndexRow += 2, ++row )
   {
     // value cell coordinates
-    for ( int cellCoordIndexCol = 1, col = 0; cellCoordIndexCol <= 17; cellCoordIndexCol += 2, ++col )
+    for ( int cellCoordIndexCol = ValueCell1, col = 0; cellCoordIndexCol <= ValueCell9; cellCoordIndexCol += 2, ++col )
     {
       for ( int i = 0; i < 3; ++i )
       {
@@ -265,28 +308,12 @@ void CGridCtrl::DrawGridLines( CPaintDC& dc )
 
   int lineStart = edgeOffset;
   int lineEnd = ( m_thickBoarderPenSize * 3 ) +
-    ( m_valueCellSize * 10 ) + 8/*(counting from 0 adjustment)*/;
-
-  //PLOGD << VARSTRACE( thickBoarderPenSize, thinBoarderPenSize, m_pencilCellCharSize, valueCellSize, homeColX, homeColY, lineStart, lineEnd, edgeOffset );
-
-  // Create pens for drawing
-  LOGBRUSH brush1;
-  brush1.lbColor = RGB( 0, 0, 255 );
-  brush1.lbStyle = BS_SOLID;
-  CPen homeCellPen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_thickBoarderPenSize, &brush1 ); // Blue pen, thick, for home cell borders
-  brush1.lbColor = RGB( 255, 0, 0 );
-  CPen blockPen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_thinBoarderPenSize, &brush1 ); // Red pen, thin, for block borders
-  brush1.lbColor = RGB( 255, 242, 0 );
-  CPen paddingPen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_thinBoarderPenSize, &brush1 ); // Yellow pen, thin, for block borders
-  brush1.lbColor = RGB( 34, 177, 76 );
-  CPen cellPen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_valueCellSize, &brush1 ); // Green pen, thin, for block borders
+                ( m_valueCellSize * 10 ) + 8/*(counting from 0 adjustment)*/;
 
   CPen* pOldPen = dc.SelectObject( &homeCellPen );
   CFont* oldFont = dc.SelectObject( &fontSml );
-  PLOGD << "Grid Draw";
 
-   int x = gridCoordinates[2];
-//   int y = edgeOffset + m_thickBoarderPenSize + m_thinBoarderPenSize;
+  int x = gridCoordinates[ThinLine1]; // Start at the first thin line, placed before the lambda's for scope reasons
 
   auto drawThickLine = [&, this] ()
   {
@@ -296,12 +323,6 @@ void CGridCtrl::DrawGridLines( CPaintDC& dc )
     dc.LineTo( x + 1, lineEnd );
     dc.MoveTo( lineStart + 1, x + 1 );
     dc.LineTo( lineEnd, x + 1 );
-    {
-      int x1 = x + 1;
-      int y1 = lineStart + 1;
-      int y2 = lineEnd;
-      PLOGD << VARSTRACE( x1, y1, y2 );
-    }
     x += m_thickBoarderPenSize;
   };
 
@@ -322,12 +343,6 @@ void CGridCtrl::DrawGridLines( CPaintDC& dc )
     dc.LineTo( x, lineEnd );
     dc.MoveTo( lineStart, x );
     dc.LineTo( lineEnd, x );
-    {
-      int x1 = x;
-      int y1 = lineStart;
-      int y2 = lineEnd;
-      PLOGD << VARSTRACE( x1, y1, y2 );
-    }
     x += m_thinBoarderPenSize;
   };
 
@@ -340,25 +355,25 @@ void CGridCtrl::DrawGridLines( CPaintDC& dc )
 
   // Draw the thin grid lines
   drawBlockLine();
-  x= gridCoordinates[4];
+  x= gridCoordinates[ThinLine2];
   drawBlockLine();
-  x = gridCoordinates[8];
+  x = gridCoordinates[ThinLine3];
   drawBlockLine();
-  x = gridCoordinates[10];
+  x = gridCoordinates[ThinLine4];
   drawBlockLine();
-  x = gridCoordinates[14];
+  x = gridCoordinates[ThinLine5];
   drawBlockLine();
-  x = gridCoordinates[16];
+  x = gridCoordinates[ThinLine6];
   drawBlockLine();
 
   // Draw the thick grid lines
-  x = gridCoordinates[0];
+  x = gridCoordinates[ThickLine1];
   drawThickLine();
-  x = gridCoordinates[6];
+  x = gridCoordinates[ThickLine2];
   drawThickLine();
-  x = gridCoordinates[12];
+  x = gridCoordinates[ThickLine3];
   drawThickLine();
-  x = gridCoordinates[18];
+  x = gridCoordinates[ThickLine4];
   drawThickLine();
 
   // Draw the grid numbering system
@@ -392,17 +407,13 @@ void CGridCtrl::DrawGridLines( CPaintDC& dc )
 
 void CGridCtrl::DrawGridText( CPaintDC& dc )
 {
-//   // Create pens for drawing
-//   CPen homeCellPen( PS_SOLID, m_thickBoarderPenSize, RGB( 0, 0, 255 ) ); // Blue pen, 2 pixels thick, for home cell borders
-//   CPen blockPen( PS_SOLID, m_thinBoarderPenSize, RGB( 255, 0, 0 ) ); // Red pen, 1 pixel thick, for block borders
-//
-//   CPen* pOldPen = dc.SelectObject( &homeCellPen );
   CFont* oldFont = dc.SelectObject( &fontSml );
   CRect paintRect( dc.m_ps.rcPaint );
 
-  PLOGD << "Grid Draw Text";
+  //PLOGD << "Grid Draw Text";
   int boldValue = -1;
-  auto pntTest = m_quadtree.query( CPoint( dc.m_ps.rcPaint.left, dc.m_ps.rcPaint.top ) );
+
+  auto pntTest = m_quadtree.query( m_queryPoint );
 
   for ( int i = 0; i < 9; ++i )
   {
@@ -470,7 +481,6 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
     }
   }
 
-//   dc.SelectObject( pOldPen ); // Restore the old pen
   dc.SelectObject( oldFont ); // Restore the old font
 }
 
@@ -547,6 +557,19 @@ BOOL CGridCtrl::Create( CWnd* pParentWnd, RECT& rect, UINT nId, DWORD dwStyle )
   rect.right = rect.left + dim;
   rect.bottom = rect.top + dim;
 
+  // Create pens for drawing
+  LOGBRUSH brush1;
+  brush1.lbColor = RGB( 0, 0, 255 );
+  brush1.lbStyle = BS_SOLID;
+  homeCellPen.CreatePen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_thickBoarderPenSize, &brush1 ); // Blue pen, thick, for home cell borders
+  brush1.lbColor = RGB( 255, 0, 0 );
+  blockPen.CreatePen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_thinBoarderPenSize, &brush1 ); // Red pen, thin, for block borders
+  brush1.lbColor = RGB( 255, 242, 0 );
+  paddingPen.CreatePen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_thinBoarderPenSize, &brush1 ); // Yellow pen, thin, for block borders
+  brush1.lbColor = RGB( 34, 177, 76 );
+  cellPen.CreatePen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_valueCellSize, &brush1 ); // Green pen, thin, for block borders
+
+
   return CWnd::Create( SUDOKU_GRID_CLASS_NAME, _T(""), dwStyle, rect, pParentWnd, nId);
 }
 
@@ -560,7 +583,8 @@ void CGridCtrl::OnMouseLeave()
 {
   m_mouseInGrid = FALSE;
   m_unHighlightCell = {0, 0, 0, 0};
-  CWnd::OnMouseLeave();
-  InvalidateRect( m_highlightedCell );
   m_highlightedCell = {0, 0, 0, 0};
+  m_queryPoint = CPoint( -1, -1 );
+  Invalidate( );
+  CWnd::OnMouseLeave();
 }

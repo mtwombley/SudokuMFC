@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "QuadtreeNode.h"
 
+#pragma region Public Methods
 void Quadtree::subdivide( QuadtreeNode* node )
 {
   int midX = ( node->bounds.left + node->bounds.right ) / 2;
@@ -17,6 +18,9 @@ void Quadtree::insert( const CRectInfo& rect )
   insert( root.get(), rect, 0 );
 }
 
+#pragma endregion Public Methods
+
+#pragma region Private Methods
 void Quadtree::insert( QuadtreeNode* node, const CRectInfo& rect, int depth )
 {
   if ( node->isLeaf() )
@@ -76,11 +80,10 @@ void Quadtree::query( QuadtreeNode* node, const CPoint& point, std::vector<CRect
   }
 }
 
-
 bool Quadtree::Intersects( const CRect& rect1, const CRect& rect2 )
 {
   return !( rect1.right < rect2.left || rect1.left > rect2.right ||
             rect1.bottom < rect2.top || rect1.top > rect2.bottom );
 }
 
-
+#pragma endregion Private Methods

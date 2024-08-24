@@ -14,10 +14,11 @@
 #define TRACEVARS
 #include <plog/Log.h>
 #include <plog/Init.h>
-#include <plog/Formatters/MessageOnlyFormatter.h>
+//#include <plog/Formatters/MessageOnlyFormatter.h>
+#include <plog/Formatters/COutFormatter.h>
 #include <plog/Appenders/DebugOutputAppender.h>
 
-extern plog::DebugOutputAppender<plog::MessageOnlyFormatter>  debugOutputAppender;
+extern plog::DebugOutputAppender<plog::COutFormatter>  debugOutputAppender;
 
 struct PLOGInitializer
 {

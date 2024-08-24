@@ -40,10 +40,17 @@ protected:
   // The grid area is square, so we only need one dimension as x will be the same as y
   int gridCoordinates[19]{0}; // Coordinates of the grid lines
   std::vector<CRect> pencilMarkRects; // Rectangles for each pencil mark cell
+
+  // Fonts and pens
   CFont fontSml;
   CFont fontSmlBold;
   CFont fontLrg;
   CFont fontLrgBold;
+  CPen homeCellPen;
+  CPen blockPen;
+  CPen paddingPen;
+  CPen cellPen;
+
   bool m_recalculateGrid = true;
   SudokuGrid* m_grid;
 
@@ -53,6 +60,7 @@ protected:
   CRect m_unHighlightCell{0, 0, 0, 0};
   BOOL m_mouseInGrid = FALSE;
   bool m_pencilMode = false;
+  CPoint m_queryPoint;
 
 public:
   // The passed rect is used for the top left corner of the grid and the bottom right corner is calculated
