@@ -157,12 +157,13 @@ struct SudokuGrid
   const std::ostringstream AsString();
 
   #pragma region Getters and Setters
-    // Get the value of a cell
+  // Get the value of a cell
   int getValue( int row, int column ) const
   {
     return static_cast<int>(cells[row][column]._value);
   }
 
+  // Get the solution value of a cell
   int getSolution( int row, int column ) const
   {
     return static_cast<int>(cells[row][column]._solution);
@@ -181,7 +182,8 @@ struct SudokuGrid
     cells[row][column]._pencilMark &= ( ~( 1 << (value-1) ) );
   }
 
-  // Set the value of a cell
+  // Set the solution value of a cell
+  // Doing so will clear the pencil marks in the row, column, and block
   void setSolution( int row, int column, int value )
   {
     cells[row][column]._solution = (unsigned int)value;
