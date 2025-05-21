@@ -6,6 +6,7 @@
 #include "MFCSudoku.h"
 #include <iostream>
 #include <strsafe.h>
+#include <algorithm>
 
 // This exact cover implementation is for a 9x9 Sudoku grid
 // The grid is represented as a 729x324 matrix, 729 being 9x9x9 (9 rows, 9 columns, 9 numbers), 324 being 4x81 (4 constraints, 81 cells)

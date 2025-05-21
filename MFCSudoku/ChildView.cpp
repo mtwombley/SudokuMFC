@@ -81,6 +81,7 @@ void CChildView::OnChangeUIState( UINT nAction, UINT nUIElement )
 void CChildView::OnFileNewrandom()
 {
   grid.GenerateRandomGrid();
+  Invalidate();
 }
 
 int CChildView::OnCreate( LPCREATESTRUCT lpCreateStruct )

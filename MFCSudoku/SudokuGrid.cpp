@@ -16,6 +16,7 @@ void SudokuGrid::clear()
       cells[row][column]._value = 0;
       cells[row][column]._pencilMark = 0x1FF;
       cells[row][column]._snyderNotation = 0;
+      cells[row][column]._solution = 0;
     }
   }
 }

@@ -63,6 +63,8 @@ struct SudokuGrid
 #pragma endregion Debug Features
   };
 
+  // A Sudoku grid is made up of cells, 9 columns and 9 rows 
+  // each cell is a BlackValue that has the solution, pencil marks and snyder notation
   BlockValue cells[9][9] = {0};
 
   ExactCover ec;

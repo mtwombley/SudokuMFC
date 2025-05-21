@@ -252,8 +252,8 @@ void CGridCtrl::OnPaint()
 
 void CGridCtrl::PreComputeCoordinates()
 {
-
-  gridCoordinates[ThickLine1] += m_labelTextAreaSize;                          // Draw thick line
+  // calculate the coordinates of elements of the grid
+  gridCoordinates[ThickLine1] += m_labelTextAreaSize;                                   // Draw thick line
   gridCoordinates[ValueCell1] += gridCoordinates[ThickLine1] + m_thickBoarderPenSize;   // draw value cell
   gridCoordinates[ThinLine1]  += gridCoordinates[ValueCell1] + m_valueCellSize;         // draw thin line
   gridCoordinates[ValueCell2] += gridCoordinates[ThinLine1]  + m_thinBoarderPenSize;    // draw value cell
@@ -273,9 +273,11 @@ void CGridCtrl::PreComputeCoordinates()
   gridCoordinates[ValueCell9] += gridCoordinates[ThinLine6]  + m_thinBoarderPenSize;    // draw value cell
   gridCoordinates[ThickLine4] += gridCoordinates[ValueCell9] + m_valueCellSize;         // draw thick line
 
+  //Place the coordinates into a quad tree for faster searching of elements.
   gridBounds = {gridCoordinates[ThickLine1], gridCoordinates[ThickLine1], gridCoordinates[ThickLine4], gridCoordinates[ThickLine4]};
   m_quadtree = Quadtree( gridBounds, 6, 4 );
 
+  // Add the coordinate information for the pencil marks
   //PLOGD << "row,col,i,j,l,t,r,b,w,h";
   for ( int cellCoordIndexRow = ValueCell1, row = 0; cellCoordIndexRow <= ValueCell9; cellCoordIndexRow += 2, ++row )
   {
@@ -437,26 +439,30 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
         }
       }
 
+      // Draw the solution in the large font
       if ( solution != 0 )
-      { // Draw the solution in the large font
+      {
         dc.SelectObject( &fontLrg );
         dc.SetTextColor( RGB( 255, 0, 0 ) );
         CString str;
         str.Format( L"%d", solution );
+        PLOGD << "Reg " << str;
         dc.DrawText( str, 1, CRect( x, y, x + m_valueCellSize, y + m_valueCellSize ), DT_CENTER | DT_VCENTER );
       }
       else
       {
+        // Draw the value in the large font
         if ( value != 0 )
-        { // Draw the value in the large font
+        {
           dc.SelectObject( &fontLrg );
           dc.SetTextColor( RGB( 255, 255, 0 ) );
           CString str;
           str.Format( L"%d", value );
           dc.DrawText( str, 1, CRect( x, y, x + m_valueCellSize, y + m_valueCellSize ), DT_CENTER | DT_VCENTER );
         }
+        // Draw the pencil marks in the small font
         else
-        { // Draw the pencil marks in the small font
+        {
           dc.SetTextColor( RGB( 0, 0, 0 ) );
           for ( int k = 0; k < 9; ++k )
           {
@@ -465,6 +471,7 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
               dc.SelectObject( &fontSmlBold );
               CString str;
               str.Format( L"%d", k + 1 );
+              PLOGD << "Bold " << str;
               dc.DrawText( str, 1, CRect( x + ( k % 3 ) * ( m_pencilCellCharSize + m_pencilCellPadding ), y + m_pencilCellCharSize * ( k / 3 ), x + ( k % 3 ) * ( m_pencilCellCharSize + m_pencilCellPadding ) + m_pencilCellCharSize, y + m_pencilCellCharSize * ( k / 3 ) + m_pencilCellCharSize ), DT_CENTER );
               boldValue = -1;
             }
@@ -473,6 +480,7 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
               dc.SelectObject( &fontSml );
               CString str;
               str.Format( L"%d", k + 1 );
+              PLOGD << "Norm " << str;
               dc.DrawText( str, 1, CRect( x + ( k % 3 ) * ( m_pencilCellCharSize + m_pencilCellPadding ), y + m_pencilCellCharSize * ( k / 3 ), x + ( k % 3 ) * ( m_pencilCellCharSize + m_pencilCellPadding ) + m_pencilCellCharSize, y + m_pencilCellCharSize * ( k / 3 ) + m_pencilCellCharSize ), DT_CENTER );
             }
           }
