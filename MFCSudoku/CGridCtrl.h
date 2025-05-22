@@ -25,15 +25,18 @@ protected:
   afx_msg void OnMouseMove( UINT nFlags, CPoint point );
   afx_msg void OnPaint();
   afx_msg void OnMouseLeave();
+  afx_msg void OnKeyDown( UINT nChar, UINT nRepCnt, UINT nFlags );
+  afx_msg void OnRButtonUp( UINT nFlags, CPoint point );
+  afx_msg void OnLButtonUp( UINT nFlags, CPoint point );
   void PreComputeCoordinates();
   void PreSubclassWindow() override;
   void DrawGridLines( CPaintDC& dc );
   void DrawGridText( CPaintDC& dc );
 
+  int m_labelTextAreaSize = 25; // Size of the area for the label
   int m_thickBoarderPenSize = 3; // Size of the home cell border pen
   int m_thinBoarderPenSize = 1;    // Size of the block border pen
   int m_pencilCellCharSize = 15; // Size of each pencil mark cell
-  int m_labelTextAreaSize = 25; // Size of the area for the label
   int m_pencilCellPadding = m_thinBoarderPenSize; // Padding between pencil cells
   int m_valueCellSize = 3 * m_pencilCellCharSize + 4 * m_pencilCellPadding; // Size of each block (3x3 grid of pencil cells)
 

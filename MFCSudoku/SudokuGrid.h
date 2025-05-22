@@ -63,7 +63,7 @@ struct SudokuGrid
 #pragma endregion Debug Features
   };
 
-  // A Sudoku grid is made up of cells, 9 columns and 9 rows 
+  // A Sudoku grid is made up of cells, 9 columns and 9 rows
   // each cell is a BlackValue that has the solution, pencil marks and snyder notation
   BlockValue cells[9][9] = {0};
 
@@ -182,6 +182,35 @@ struct SudokuGrid
   {
     cells[row][column]._value = (unsigned int)value;
     cells[row][column]._pencilMark &= ( ~( 1 << (value-1) ) );
+    // remove the value from the pencilMarks in the row, column, and block
+    unsetPencilMark( row, column, value );
+  }
+
+  // unset the pencil mark for a cell and remove the value from the pencilMarks in the row, column, and block
+  void unsetPencilMark(int row, int column, int value )
+  {
+    cells[row][column]._pencilMark &= ( ~( 1 << (value-1) ) );
+    // remove the value from the pencilMarks in the row, column, and block
+    int blockRow = row / 3;
+    int blockColumn = column / 3;
+    for ( int i = blockRow * 3; i < blockRow * 3 + 3; ++i )
+    {
+      for ( int j = blockColumn * 3; j < blockColumn * 3 + 3; ++j )
+      {
+        cells[i][j]._pencilMark &= ( ~( 1 << ( value - 1 ) ) );
+      }
+    }
+    // remove the value from the pencilMarks in the row cells
+    // remove the value from the pencilMarks in the column cells
+    for ( int i = 0; i < 9; ++i )
+    {
+      for ( int j = 0; j < 9; ++j )
+      {
+        if ( i == row || j == column )
+          cells[i][j]._pencilMark &= ( ~( 1 << ( value - 1 ) ) );
+      }
+    }
+
   }
 
   // Set the solution value of a cell
@@ -189,26 +218,7 @@ struct SudokuGrid
   void setSolution( int row, int column, int value )
   {
     cells[row][column]._solution = (unsigned int)value;
-    cells[row][column]._pencilMark &= ( ~( 1 << (value-1) ) );
-
-    // remove the value from the pencilMarks in the home cells
-    int blockRow = row / 3;
-    int blockColumn = column / 3;
-    for ( int i = blockRow * 3; i < blockRow * 3 + 3; ++i )
-    {
-      for ( int j = blockColumn * 3; j < blockColumn * 3 + 3; ++j )
-      {
-        cells[i][j]._pencilMark &= ( ~( 1 << (value-1) ) );
-      }
-    }
-    // remove the value from the pencilMarks in the row cells
-    // remove the value from the pencilMarks in the column cells
-    for ( int i = 0; i < 9; ++i )
-      for ( int j = 0; j < 9; ++j )
-      {
-        if ( i == row || j == column )
-          cells[i][j]._pencilMark &= ( ~( 1 << (value-1) ) );
-      }
+    unsetPencilMark( row, column, value );
   }
 
   // Set the pencil mark value of a cell

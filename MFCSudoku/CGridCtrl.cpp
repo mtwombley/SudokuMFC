@@ -83,6 +83,9 @@ BEGIN_MESSAGE_MAP(CGridCtrl, CWnd)
   ON_WM_MOUSEMOVE()
   ON_WM_PAINT()
   ON_WM_MOUSELEAVE()
+  ON_WM_KEYDOWN()
+  ON_WM_RBUTTONUP()
+  ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 BOOL CGridCtrl::RegisterWindowClass()
@@ -243,7 +246,7 @@ void CGridCtrl::OnPaint()
 
   if ( !m_highlightedCell.IsRectEmpty() )
   {
-    PLOGD << "m_highlightCell: " << m_highlightedCell.left << "," << m_highlightedCell.top << "," << m_highlightedCell.right << "," << m_highlightedCell.bottom;
+    //PLOGD << "m_highlightCell: " << m_highlightedCell.left << "," << m_highlightedCell.top << "," << m_highlightedCell.right << "," << m_highlightedCell.bottom;
     dc.DrawFocusRect( m_highlightedCell );
   }
 
@@ -443,10 +446,10 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
       if ( solution != 0 )
       {
         dc.SelectObject( &fontLrg );
-        dc.SetTextColor( RGB( 255, 0, 0 ) );
+        dc.SetTextColor( RGB( 69, 92, 186 ) );
         CString str;
         str.Format( L"%d", solution );
-        PLOGD << "Reg " << str;
+        //PLOGD << "Reg " << str;
         dc.DrawText( str, 1, CRect( x, y, x + m_valueCellSize, y + m_valueCellSize ), DT_CENTER | DT_VCENTER );
       }
       else
@@ -455,7 +458,7 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
         if ( value != 0 )
         {
           dc.SelectObject( &fontLrg );
-          dc.SetTextColor( RGB( 255, 255, 0 ) );
+          dc.SetTextColor( RGB( 0, 255, 0 ) );
           CString str;
           str.Format( L"%d", value );
           dc.DrawText( str, 1, CRect( x, y, x + m_valueCellSize, y + m_valueCellSize ), DT_CENTER | DT_VCENTER );
@@ -471,7 +474,7 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
               dc.SelectObject( &fontSmlBold );
               CString str;
               str.Format( L"%d", k + 1 );
-              PLOGD << "Bold " << str;
+              //PLOGD << "Bold " << str;
               dc.DrawText( str, 1, CRect( x + ( k % 3 ) * ( m_pencilCellCharSize + m_pencilCellPadding ), y + m_pencilCellCharSize * ( k / 3 ), x + ( k % 3 ) * ( m_pencilCellCharSize + m_pencilCellPadding ) + m_pencilCellCharSize, y + m_pencilCellCharSize * ( k / 3 ) + m_pencilCellCharSize ), DT_CENTER );
               boldValue = -1;
             }
@@ -480,7 +483,7 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
               dc.SelectObject( &fontSml );
               CString str;
               str.Format( L"%d", k + 1 );
-              PLOGD << "Norm " << str;
+              //PLOGD << "Norm " << str;
               dc.DrawText( str, 1, CRect( x + ( k % 3 ) * ( m_pencilCellCharSize + m_pencilCellPadding ), y + m_pencilCellCharSize * ( k / 3 ), x + ( k % 3 ) * ( m_pencilCellCharSize + m_pencilCellPadding ) + m_pencilCellCharSize, y + m_pencilCellCharSize * ( k / 3 ) + m_pencilCellCharSize ), DT_CENTER );
             }
           }
@@ -590,9 +593,59 @@ void CGridCtrl::TogglePencilMode()
 void CGridCtrl::OnMouseLeave()
 {
   m_mouseInGrid = FALSE;
+  InvalidateRect( m_highlightedCell );
+  InvalidateRect( m_unHighlightCell );
   m_unHighlightCell = {0, 0, 0, 0};
   m_highlightedCell = {0, 0, 0, 0};
   m_queryPoint = CPoint( -1, -1 );
-  Invalidate( );
+  Invalidate( FALSE );
   CWnd::OnMouseLeave();
+}
+
+void CGridCtrl::OnKeyDown( UINT nChar, UINT nRepCnt, UINT nFlags )
+{
+  PLOGD << "Key pressed: " << nChar;
+  CWnd::OnKeyDown( nChar, nRepCnt, nFlags );
+}
+
+void CGridCtrl::OnRButtonUp( UINT nFlags, CPoint point )
+{
+  TogglePencilMode();
+  CWnd::OnRButtonUp( nFlags, point );
+}
+
+void CGridCtrl::OnLButtonUp( UINT nFlags, CPoint point )
+{
+  // Can the mouse be outside the window when we click?
+  if ( !m_mouseInGrid )
+  {
+    PLOGD << "Mouse is outside the grid, ignoring click";
+    return;
+  }
+  // If we are in pencil mode, we need to add the pencil mark to the cell
+  if ( m_pencilMode )
+  {
+    // find the cell that we are in
+    auto foundRects = m_quadtree.query( point );
+    if ( foundRects.size() == 1 )
+    {
+      //PLOGD << "Found cell: " << foundRects[0]->row << "," << foundRects[0]->col << "," << foundRects[0]->value;
+      m_grid->setPencilMarkValue( foundRects[0]->row, foundRects[0]->col, foundRects[0]->value + 1 );
+      //InvalidateRect( *foundRects[0] );
+      Invalidate();
+    }
+  }
+  else
+  {
+    // find the cell that we are in
+    auto foundRects = m_quadtree.query( point );
+    if ( foundRects.size() == 1 )
+    {
+      //PLOGD << "Found cell: " << foundRects[0]->row << "," << foundRects[0]->col << "," << foundRects[0]->value;
+      m_grid->setValue( foundRects[0]->row, foundRects[0]->col, foundRects[0]->value + 1 );
+      //InvalidateRect( *foundRects[0] );
+      Invalidate();
+    }
+  }
+  CWnd::OnLButtonUp( nFlags, point );
 }

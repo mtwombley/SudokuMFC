@@ -34,7 +34,7 @@ protected:
   afx_msg void OnChangeUIState(UINT nAction, UINT nUIElement);
   afx_msg void OnFileNewrandom();
   afx_msg int OnCreate( LPCREATESTRUCT lpCreateStruct );
-
+  afx_msg void OnSetFocus(CWnd *);
   DECLARE_MESSAGE_MAP()
 
 public:

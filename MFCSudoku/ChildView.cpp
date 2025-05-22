@@ -43,6 +43,7 @@ BEGIN_MESSAGE_MAP( CChildView, CWnd )
   ON_COMMAND( ID_FILE_NEWRANDOM, &CChildView::OnFileNewrandom )
   ON_WM_CREATE()
   ON_WM_RBUTTONUP()
+  ON_WM_SETFOCUS()
 END_MESSAGE_MAP()
 
 
@@ -98,10 +99,22 @@ int CChildView::OnCreate( LPCREATESTRUCT lpCreateStruct )
   return 0;
 }
 
+void CChildView::OnSetFocus(CWnd * pOldWnd)
+{
+  if ( m_gridCtrl.GetSafeHwnd() )
+  {
+    m_gridCtrl.SetFocus();
+  }
+  else
+  {
+    CWnd::OnSetFocus( pOldWnd );
+  }
+}
 
 void CChildView::OnRButtonUp( UINT nFlags, CPoint point )
 {
   // Toggle pencil modes
-  ((CGridCtrl*)GetDlgItem(1))->TogglePencilMode();
+  ((CGridCtrl*)GetDlgItem(0))->TogglePencilMode();
   CWnd::OnRButtonUp( nFlags, point );
 }
+
