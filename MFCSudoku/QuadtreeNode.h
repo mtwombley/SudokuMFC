@@ -115,6 +115,8 @@ public:
    */
   std::vector<CRectInfo*> query( const CPoint& point );
 
+  const QuadtreeNode* findNodeForRect( const CRectInfo* rect ) const;
+
 private:
   std::unique_ptr<QuadtreeNode> root; ///< Root node of the quad tree.
   int maxDepth;                       ///< Maximum allowed depth of the tree.
@@ -149,4 +151,6 @@ private:
    * @return true if the rectangles intersect, false otherwise.
    */
   bool Intersects( const CRect& rect1, const CRect& rect2 );
+
+  const QuadtreeNode* Quadtree::findNodeForRectRecursive( const QuadtreeNode* node, const CRectInfo* rect ) const;
 };

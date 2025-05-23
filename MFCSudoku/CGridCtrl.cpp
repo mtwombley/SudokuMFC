@@ -175,21 +175,55 @@ void CGridCtrl::OnMouseMove( UINT nFlags, CPoint point )
   {
     // if we are in pencil mode, draw a rect around the pencil mark cell
     // find the cell that we are in
-    auto foundRects = m_quadtree.query( point );
-    if ( foundRects.size() == 0 )
+    if (m_pencilMode )
     {
-      PLOGD << "No cell found";
-    }
-    for ( auto rect : foundRects )
-    {
-      if (m_highlightedCell != *rect/* && m_unHighlightCell != *rect */)
+      auto foundRects = m_quadtree.query( point );
+      if ( foundRects.size() == 0 )
       {
-        m_unHighlightCell = m_highlightedCell;
-        m_highlightedCell.CopyRect(*rect);
-        m_queryPoint = point;
-        InvalidateRect( m_unHighlightCell );
-        InvalidateRect( m_highlightedCell );
+        PLOGD << "No cell found";
       }
+      for ( auto rect : foundRects )
+      {
+        if ( m_highlightedCell != *rect/* && m_unHighlightCell != *rect */ )
+        {
+          m_unHighlightCell = m_highlightedCell;
+          m_highlightedCell.CopyRect( *rect );
+          m_queryPoint = point;
+          m_currentRow = rect->row;
+          m_currentCol = rect->col;
+          m_currentPencilMark = rect->value;
+          InvalidateRect( m_unHighlightCell );
+          InvalidateRect( m_highlightedCell );
+        }
+      }
+    }
+    else
+    {
+      auto foundRects = m_quadtree.query( point );
+      if ( !foundRects.empty() )
+      {
+        int cellRow = foundRects[0]->row;
+        int cellCol = foundRects[0]->col;
+
+        int left = gridCoordinates[1 + cellCol * 2]+1;
+        int top = gridCoordinates[1 + cellRow * 2]+1;
+        int right = gridCoordinates[2 + cellCol * 2]-1;
+        int bottom = gridCoordinates[2 + cellRow * 2]-1;
+        CRect homeBlockRect( left, top, right, bottom );
+        if ( homeBlockRect != m_highlightedCell )
+        {
+          m_unHighlightCell = m_highlightedCell;
+          m_highlightedCell = homeBlockRect;
+          m_currentRow = cellRow;
+          m_currentCol = cellCol;
+          m_queryPoint = point;
+          InvalidateRect( m_highlightedCell );
+          InvalidateRect( m_unHighlightCell );
+        }
+        PLOGD << "Found cell: " << foundRects[0]->row << "," << foundRects[0]->col << "," << foundRects[0]->value;
+      }
+      else
+        PLOGD << "No cell found";
     }
   }
     break;
@@ -205,6 +239,7 @@ void CGridCtrl::OnPaint()
 {
   CPaintDC dc( this );
 
+  // On first paint set the small and large fonts and get the sizes
   if ( fontSml.GetSafeHandle() == nullptr )
   {
     // Get the system font
@@ -234,6 +269,7 @@ void CGridCtrl::OnPaint()
     dc.GetTextMetrics( &textMetric );
   }
 
+  // If the coordinates and Quad are not initialized, do so.
   if (m_recalculateGrid )
   {
     PreComputeCoordinates();
@@ -241,7 +277,9 @@ void CGridCtrl::OnPaint()
     m_recalculateGrid = false;
   }
 
+  // Draw all text first
   DrawGridText( dc );
+  // Draw all lines and they might overlap text
   DrawGridLines( dc );
 
   if ( !m_highlightedCell.IsRectEmpty() )
@@ -442,6 +480,17 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
         }
       }
 
+      if ( m_highlightedValue != 0 && 
+           (m_grid->getPencilMarkValue(i,j,m_highlightedValue) || 
+           m_grid->getValue(i,j) == m_highlightedValue || 
+           m_grid->getSolution(i,j) == m_highlightedValue)
+         )
+      {
+        dc.FillSolidRect( x, y, m_valueCellSize, m_valueCellSize, RGB( 255, 242, 0 ) );
+      }
+      else
+        dc.SetBkColor( RGB( 255, 255, 255 ) );
+
       // Draw the solution in the large font
       if ( solution != 0 )
       {
@@ -598,6 +647,9 @@ void CGridCtrl::OnMouseLeave()
   m_unHighlightCell = {0, 0, 0, 0};
   m_highlightedCell = {0, 0, 0, 0};
   m_queryPoint = CPoint( -1, -1 );
+  m_currentCol = -1;
+  m_currentRow = -1;
+  m_currentPencilMark = -1;
   Invalidate( FALSE );
   CWnd::OnMouseLeave();
 }
@@ -605,12 +657,40 @@ void CGridCtrl::OnMouseLeave()
 void CGridCtrl::OnKeyDown( UINT nChar, UINT nRepCnt, UINT nFlags )
 {
   PLOGD << "Key pressed: " << nChar;
+  bool ctrlDown = ( GetKeyState( VK_CONTROL ) & 0x8000 ) != 0;
+  if ( ctrlDown && nChar >= VK_NUMPAD1 && nChar <= VK_NUMPAD9)
+  {
+    m_highlightedValue = nChar - VK_NUMPAD1 + 1;
+    Invalidate();
+  }
+  else
+  {
+    switch ( nChar )
+    {
+    case VK_NUMPAD0:
+      // zero out the value currently highlighted
+      if ( m_pencilMode )
+      {
+      }
+      else
+      {
+        m_grid->setValue( m_currentRow, m_currentCol, 0 );
+        m_grid->resetPencilMarks( m_currentRow, m_currentCol );
+        Invalidate();
+      }
+      break;
+    }
+  }
   CWnd::OnKeyDown( nChar, nRepCnt, nFlags );
 }
 
 void CGridCtrl::OnRButtonUp( UINT nFlags, CPoint point )
 {
   TogglePencilMode();
+  InvalidateRect( m_unHighlightCell );
+  InvalidateRect( m_highlightedCell );
+  m_highlightedCell = {0,0,0,0};
+  m_unHighlightCell = {0,0,0,0};
   CWnd::OnRButtonUp( nFlags, point );
 }
 
@@ -630,7 +710,7 @@ void CGridCtrl::OnLButtonUp( UINT nFlags, CPoint point )
     if ( foundRects.size() == 1 )
     {
       //PLOGD << "Found cell: " << foundRects[0]->row << "," << foundRects[0]->col << "," << foundRects[0]->value;
-      m_grid->setPencilMarkValue( foundRects[0]->row, foundRects[0]->col, foundRects[0]->value + 1 );
+      m_grid->togglePencilMarkValue( foundRects[0]->row, foundRects[0]->col, foundRects[0]->value );
       //InvalidateRect( *foundRects[0] );
       Invalidate();
     }

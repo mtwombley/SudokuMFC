@@ -86,4 +86,33 @@ bool Quadtree::Intersects( const CRect& rect1, const CRect& rect2 )
             rect1.bottom < rect2.top || rect1.top > rect2.bottom );
 }
 
+const QuadtreeNode* Quadtree::findNodeForRect( const CRectInfo* rect ) const
+{
+  return findNodeForRectRecursive( root.get(), rect );
+}
+
+const QuadtreeNode* Quadtree::findNodeForRectRecursive( const QuadtreeNode* node, const CRectInfo* rect ) const
+{
+  for ( const auto& r : node->rects )
+  {
+    if ( &r == rect )
+    {
+      return node;
+    }
+  }
+  if ( !node->isLeaf() )
+  {
+    for ( const auto& child : node->children )
+    {
+      if ( child )
+      {
+        const QuadtreeNode* found = findNodeForRectRecursive( child.get(), rect );
+        if ( found ) 
+          return found;
+      }
+    }
+  }
+  return nullptr;
+}
+
 #pragma endregion Private Methods

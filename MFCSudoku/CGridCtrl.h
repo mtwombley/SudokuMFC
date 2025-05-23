@@ -59,8 +59,12 @@ protected:
 
   CRect gridBounds{0, 0, 1000, 1000};
   Quadtree m_quadtree{gridBounds, 4, 4};
-  CRect m_highlightedCell{0, 0, 0, 0};
-  CRect m_unHighlightCell{0, 0, 0, 0};
+  CRect m_highlightedCell{0, 0, 0, 0}; //rectangle of currently highlighted cell. if m_pencilMode than it is the pencil mark highlighted
+  CRect m_unHighlightCell{0, 0, 0, 0}; //rectangle to unhighlight as cursor moves
+  int   m_currentRow;
+  int   m_currentCol;
+  int   m_currentPencilMark;
+  int   m_highlightedValue = 0;
   BOOL m_mouseInGrid = FALSE;
   bool m_pencilMode = false;
   CPoint m_queryPoint;
