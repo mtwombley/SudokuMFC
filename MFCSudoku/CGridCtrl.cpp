@@ -88,6 +88,16 @@ BEGIN_MESSAGE_MAP(CGridCtrl, CWnd)
   ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
+COLORREF CLR_PENCILMARKS    = RGB( 0, 0, 0 );
+COLORREF CLR_GRID_NUMBERS   = RGB( 0, 0, 0 );
+COLORREF CLR_WHITE          = RGB( 255, 255, 255 );
+COLORREF CLR_SOLUTIONS      = RGB( 69, 92, 186 );
+COLORREF CLR_CELL_HIGHLIGHT = RGB( 255, 242, 0 );  //cell highlight yellow
+COLORREF CLR_CELL_VAL       = RGB( 21, 173, 76 );  //cell value number
+COLORREF CLR_BLUE           = RGB( 0, 0, 255 );
+COLORREF CLR_RED            = RGB( 255, 0, 0 );
+COLORREF CLR_LGT_GREEN      = RGB( 21, 173, 76 );
+
 BOOL CGridCtrl::RegisterWindowClass()
 {
   WNDCLASS wndcls;
@@ -136,6 +146,7 @@ void CGridCtrl::OnMouseMove( UINT nFlags, CPoint point )
 {
   if (!m_mouseInGrid )
   {
+    // We have entered the grid area, start tracking for mouse leave
     TRACKMOUSEEVENT tme;
     tme.cbSize = sizeof( tme );
     tme.dwFlags = TME_LEAVE/* | TME_HOVER*/;
@@ -205,22 +216,23 @@ void CGridCtrl::OnMouseMove( UINT nFlags, CPoint point )
         int cellRow = foundRects[0]->row;
         int cellCol = foundRects[0]->col;
 
-        int left = gridCoordinates[1 + cellCol * 2]+1;
-        int top = gridCoordinates[1 + cellRow * 2]+1;
-        int right = gridCoordinates[2 + cellCol * 2]-1;
+        int left   = gridCoordinates[1 + cellCol * 2]+1;
+        int top    = gridCoordinates[1 + cellRow * 2]+1;
+        int right  = gridCoordinates[2 + cellCol * 2]-1;
         int bottom = gridCoordinates[2 + cellRow * 2]-1;
         CRect homeBlockRect( left, top, right, bottom );
         if ( homeBlockRect != m_highlightedCell )
         {
+          //PLOGD << homeBlockRect.left << " " << homeBlockRect.right << " " << homeBlockRect.top << " " << homeBlockRect.bottom;
           m_unHighlightCell = m_highlightedCell;
           m_highlightedCell = homeBlockRect;
           m_currentRow = cellRow;
           m_currentCol = cellCol;
           m_queryPoint = point;
-          InvalidateRect( m_highlightedCell );
           InvalidateRect( m_unHighlightCell );
+          InvalidateRect( m_highlightedCell );
         }
-        PLOGD << "Found cell: " << foundRects[0]->row << "," << foundRects[0]->col << "," << foundRects[0]->value;
+        //PLOGD << "Found cell: " << foundRects[0]->row << "," << foundRects[0]->col << "," << foundRects[0]->value;
       }
       else
         PLOGD << "No cell found";
@@ -420,7 +432,7 @@ void CGridCtrl::DrawGridLines( CPaintDC& dc )
   drawThickLine();
 
   // Draw the grid numbering system
-  dc.SetTextColor( RGB( 0, 0, 0 ) ); // Set the text color to black
+  dc.SetTextColor( CLR_GRID_NUMBERS ); // Set the text color to black
   wchar_t pencilTextRow[][10] = {L"1", L"2", L"3", L"4", L"5", L"6", L"7", L"8", L"9"};
   wchar_t pencilTextCol[][10] = {L"A", L"B", L"C", L"D", L"E", L"F", L"G", L"H", L"I"};
 
@@ -455,6 +467,7 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
 
   //PLOGD << "Grid Draw Text";
   int boldValue = -1;
+  PLOGD << VARTRACE( m_queryPoint.x ) << VARTRACE( m_queryPoint.y );
 
   auto pntTest = m_quadtree.query( m_queryPoint );
 
@@ -472,6 +485,9 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
 //         continue;
 //       }
       int solution = m_grid->getSolution( i, j );
+
+      //PLOGD << "pntTest size: " << pntTest.size();
+
       if ( pntTest.size() == 1 )
       {
         if ( pntTest[0]->row == i && pntTest[0]->col == j )
@@ -480,22 +496,22 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
         }
       }
 
-      if ( m_highlightedValue != 0 && 
-           (m_grid->getPencilMarkValue(i,j,m_highlightedValue) || 
-           m_grid->getValue(i,j) == m_highlightedValue || 
+      if ( m_highlightedValue != 0 &&
+           (m_grid->getPencilMarkValue(i,j,m_highlightedValue) ||
+           m_grid->getValue(i,j) == m_highlightedValue ||
            m_grid->getSolution(i,j) == m_highlightedValue)
          )
       {
-        dc.FillSolidRect( x, y, m_valueCellSize, m_valueCellSize, RGB( 255, 242, 0 ) );
+        dc.FillSolidRect( x, y, m_valueCellSize, m_valueCellSize, CLR_CELL_HIGHLIGHT );
       }
       else
-        dc.SetBkColor( RGB( 255, 255, 255 ) );
+        dc.SetBkColor( CLR_WHITE );
 
       // Draw the solution in the large font
       if ( solution != 0 )
       {
         dc.SelectObject( &fontLrg );
-        dc.SetTextColor( RGB( 69, 92, 186 ) );
+        dc.SetTextColor( CLR_SOLUTIONS );
         CString str;
         str.Format( L"%d", solution );
         //PLOGD << "Reg " << str;
@@ -507,7 +523,7 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
         if ( value != 0 )
         {
           dc.SelectObject( &fontLrg );
-          dc.SetTextColor( RGB( 0, 255, 0 ) );
+          dc.SetTextColor( CLR_CELL_VAL );
           CString str;
           str.Format( L"%d", value );
           dc.DrawText( str, 1, CRect( x, y, x + m_valueCellSize, y + m_valueCellSize ), DT_CENTER | DT_VCENTER );
@@ -515,10 +531,10 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
         // Draw the pencil marks in the small font
         else
         {
-          dc.SetTextColor( RGB( 0, 0, 0 ) );
+          dc.SetTextColor( CLR_PENCILMARKS );
           for ( int k = 0; k < 9; ++k )
           {
-            if (boldValue == k)
+            if (boldValue == k && m_pencilMode)
             {
               dc.SelectObject( &fontSmlBold );
               CString str;
@@ -619,14 +635,14 @@ BOOL CGridCtrl::Create( CWnd* pParentWnd, RECT& rect, UINT nId, DWORD dwStyle )
 
   // Create pens for drawing
   LOGBRUSH brush1;
-  brush1.lbColor = RGB( 0, 0, 255 );
+  brush1.lbColor = CLR_BLUE;
   brush1.lbStyle = BS_SOLID;
   homeCellPen.CreatePen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_thickBoarderPenSize, &brush1 ); // Blue pen, thick, for home cell borders
-  brush1.lbColor = RGB( 255, 0, 0 );
+  brush1.lbColor = CLR_RED;
   blockPen.CreatePen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_thinBoarderPenSize, &brush1 ); // Red pen, thin, for block borders
-  brush1.lbColor = RGB( 255, 242, 0 );
+  brush1.lbColor = CLR_CELL_HIGHLIGHT;
   paddingPen.CreatePen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_thinBoarderPenSize, &brush1 ); // Yellow pen, thin, for block borders
-  brush1.lbColor = RGB( 34, 177, 76 );
+  brush1.lbColor = CLR_LGT_GREEN;
   cellPen.CreatePen( PS_SOLID | PS_ENDCAP_SQUARE | PS_GEOMETRIC, m_valueCellSize, &brush1 ); // Green pen, thin, for block borders
 
 
