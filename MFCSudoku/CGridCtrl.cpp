@@ -556,7 +556,7 @@ void CGridCtrl::DrawGridText( CPaintDC& dc )
       }
     }
   }
-
+  dc.SetBkColor( CLR_WHITE );
   dc.SelectObject( oldFont ); // Restore the old font
 }
 
@@ -744,4 +744,15 @@ void CGridCtrl::OnLButtonUp( UINT nFlags, CPoint point )
     }
   }
   CWnd::OnLButtonUp( nFlags, point );
+}
+
+void CGridCtrl::OnSetHighlightNumber( int value )
+{
+  m_highlightedValue = value;
+  Invalidate();
+}
+
+int CGridCtrl::GetHighlightedNumber()
+{
+  return m_highlightedValue;
 }

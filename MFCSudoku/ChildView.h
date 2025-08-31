@@ -1,9 +1,9 @@
-
 // ChildView.h : interface of the CChildView class
 //
 
 #pragma once
 #include "CGridCtrl.h"
+#include <afxwin.h> // For CButton
 
 // CChildView window
 
@@ -36,8 +36,11 @@ protected:
   afx_msg int OnCreate( LPCREATESTRUCT lpCreateStruct );
   afx_msg void OnSetFocus(CWnd *);
   DECLARE_MESSAGE_MAP()
-
-public:
     afx_msg void OnRButtonUp( UINT nFlags, CPoint point );
+    afx_msg void OnNumberButtonClicked(UINT nID);
+public:
+
+protected:
+    CButton m_buttons[9];
 };
 

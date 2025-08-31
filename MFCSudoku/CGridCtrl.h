@@ -3,6 +3,7 @@
 #include "QuadtreeNode.h"
 
 // CGridCtrl
+#define WM_SET_GRID_NUMBER (WM_USER + 1)
 
 class CGridCtrl : public CWnd
 {
@@ -28,6 +29,7 @@ protected:
   afx_msg void OnKeyDown( UINT nChar, UINT nRepCnt, UINT nFlags );
   afx_msg void OnRButtonUp( UINT nFlags, CPoint point );
   afx_msg void OnLButtonUp( UINT nFlags, CPoint point );
+  
   void PreComputeCoordinates();
   void PreSubclassWindow() override;
   void DrawGridLines( CPaintDC& dc );
@@ -74,6 +76,8 @@ public:
   virtual BOOL Create( CWnd* pParentWnd, RECT& rect, UINT nId, DWORD dwStyle );
 
   void TogglePencilMode();
+  void OnSetHighlightNumber( int value );
+  int GetHighlightedNumber();
 };
 
 
